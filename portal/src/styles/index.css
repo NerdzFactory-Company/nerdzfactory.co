@@ -1,0 +1,136 @@
+@import url('https://fonts.googleapis.com/css2?family=Montserrat:wght@400;500;600;700&display=swap');
+
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+/* ---------------------------------------------------------------
+   Design tokens — CSS variables for light + dark themes
+   --------------------------------------------------------------- */
+
+@layer base {
+  :root {
+    /* Light theme (default) */
+    --bg: 248 250 252;            /* slate-50 */
+    --surface: 255 255 255;       /* white */
+    --surface-2: 241 245 249;     /* slate-100 */
+    --surface-3: 226 232 240;     /* slate-200 */
+    --fg: 17 24 39;               /* near-black */
+    --muted: 100 116 139;         /* slate-500 */
+    --border: 226 232 240;        /* slate-200 */
+    --accent: 62 140 255;         /* brand #3e8cff */
+    --accent-hover: 37 99 235;    /* brand 600 */
+  }
+
+  .dark {
+    /* Dark theme — matches main nerdzfactory.co */
+    --bg: 11 17 32;               /* #0B1120 site background */
+    --surface: 17 26 48;          /* ink-800 */
+    --surface-2: 27 37 64;        /* ink-700 */
+    --surface-3: 36 49 82;        /* ink-600 */
+    --fg: 248 250 252;            /* slate-50 */
+    --muted: 148 163 184;         /* slate-400 */
+    --border: 31 41 64;
+    --accent: 62 140 255;
+    --accent-hover: 93 146 255;
+  }
+
+  html,
+  body,
+  #root {
+    height: 100%;
+  }
+
+  body {
+    @apply bg-bg text-fg font-sans antialiased;
+    font-feature-settings: 'cv11', 'ss01';
+  }
+
+  * {
+    @apply border-border;
+  }
+
+  h1, h2, h3, h4, h5, h6 {
+    @apply font-heading;
+  }
+}
+
+/* ---------------------------------------------------------------
+   Reusable component primitives
+   --------------------------------------------------------------- */
+
+@layer components {
+  .scrollbar-thin {
+    scrollbar-width: thin;
+    scrollbar-color: rgb(var(--border)) transparent;
+  }
+
+  .scrollbar-thin::-webkit-scrollbar {
+    width: 6px;
+    height: 6px;
+  }
+
+  .scrollbar-thin::-webkit-scrollbar-thumb {
+    background-color: rgb(var(--border));
+    border-radius: 3px;
+  }
+
+  .ring-focus {
+    @apply focus:outline-none focus-visible:ring-2 focus-visible:ring-accent focus-visible:ring-offset-2 focus-visible:ring-offset-bg;
+  }
+
+  /** FullCalendar — align with portal tokens */
+  .nf-fullcalendar {
+    --fc-page-bg-color: rgb(var(--surface));
+    --fc-neutral-bg-color: rgb(var(--surface-2) / 0.45);
+    --fc-neutral-text-color: rgb(var(--muted));
+    --fc-border-color: rgb(var(--border));
+    --fc-button-bg-color: rgb(var(--accent));
+    --fc-button-border-color: rgb(var(--accent));
+    --fc-button-text-color: #fff;
+    --fc-button-hover-bg-color: rgb(var(--accent-hover));
+    --fc-button-hover-border-color: rgb(var(--accent-hover));
+    --fc-button-active-bg-color: rgb(var(--accent-hover));
+    --fc-today-bg-color: rgb(var(--accent) / 0.12);
+    --fc-highlight-color: rgb(var(--accent) / 0.18);
+    --fc-now-indicator-color: rgb(var(--accent));
+  }
+
+  .nf-fullcalendar .fc-toolbar-title {
+    @apply font-heading text-base font-semibold text-fg;
+  }
+
+  .nf-fullcalendar .fc-event {
+    cursor: pointer;
+    border-radius: 4px;
+  }
+
+  .nf-fullcalendar .fc-daygrid-event {
+    margin-top: 2px;
+  }
+
+  .nf-fullcalendar--interactive .fc-daygrid-day {
+    cursor: pointer;
+  }
+
+  .nf-fullcalendar--interactive .fc-daygrid-day:not(.fc-day-disabled):hover {
+    background-color: rgb(var(--accent) / 0.08);
+  }
+
+  .nf-fullcalendar--interactive .fc-timegrid-slot {
+    cursor: crosshair;
+  }
+
+  .nf-fullcalendar .fc-popover {
+    @apply border border-border bg-surface shadow-lg;
+  }
+
+  .nf-fullcalendar .fc-more-popover .fc-popover-body {
+    @apply max-h-64 overflow-y-auto scrollbar-thin;
+  }
+
+  .nf-fullcalendar .fc-col-header-cell-cushion,
+  .nf-fullcalendar .fc-daygrid-day-number {
+    @apply text-fg;
+  }
+}
