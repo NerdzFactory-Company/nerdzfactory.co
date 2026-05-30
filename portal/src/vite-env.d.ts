@@ -9,8 +9,12 @@ interface ImportMetaEnv {
   readonly VITE_GOOGLE_CALENDAR_EMBED_URL?: string
   /** Supabase project URL — Realtime presence + live notes */
   readonly VITE_SUPABASE_URL?: string
-  /** Supabase anon (public) key */
+  /** Supabase publishable/anon key (see dashboard API settings) */
   readonly VITE_SUPABASE_ANON_KEY?: string
+  /** When `true`, login uses Supabase email/password instead of mock seed users */
+  readonly VITE_USE_SUPABASE_AUTH?: string
+  /** When `true`, tasks/announcements/directory data load from Postgres (`portal_*` tables + `profiles`). Requires auth session + migration `20260518120000_portal_data_tables.sql`. */
+  readonly VITE_USE_SUPABASE_DATA?: string
 }
 
 interface ImportMeta {

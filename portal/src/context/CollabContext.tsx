@@ -19,6 +19,7 @@ import { useAuth } from '@/context/AuthContext'
 import { useData } from '@/context/DataContext'
 import { useLocalStorage } from '@/hooks/useLocalStorage'
 import { seedWorkspaceNotes } from '@/data/mockData'
+import { isSupabaseAuthEnabled } from '@/lib/authMode'
 import { supabase } from '@/lib/supabase'
 import type { PresencePeer, UserAvailability, WorkspaceActivity, WorkspaceNote } from '@/types'
 import {
@@ -241,52 +242,90 @@ export function CollabProvider({ children }: { children: ReactNode }) {
       return
     }
 
+    const sb = supabase
+
+    /** Private channels + JWT (§6) only when using real Supabase Auth — mock login has no session. */
+    const usePrivateRealtime = isSupabaseAuthEnabled()
+
     setSupabaseRealtime('connecting')
     setPeers([])
+    subscribedRef.current = false
 
-    const client = supabase
-    const ch = client.channel('nf-portal-workspace', {
-      config: {
-        broadcast: { ack: false },
-        presence: { key: user.id },
-      },
-    })
-    channelRef.current = ch
+    let cancelled = false
 
-    ch.on<NoteBroadcast>('broadcast', { event: 'note' }, (wr) => {
-      const payload = wr.payload
-      if (payload) applyRemoteNote(payload)
-    })
+    const authSub = usePrivateRealtime
+      ? sb.auth.onAuthStateChange((_event, sess) => {
+          if (sess?.access_token) sb.realtime.setAuth(sess.access_token)
+        })
+      : null
 
-    const syncPeers = () => {
-      const state = ch.presenceState() as Record<string, unknown[]>
-      setPeers(parsePresenceState(state, user.id))
-    }
-
-    ch.on('presence', { event: 'sync' }, syncPeers)
-    ch.on('presence', { event: 'join' }, syncPeers)
-    ch.on('presence', { event: 'leave' }, syncPeers)
-
-    ch.subscribe((status, err) => {
-      if (status === 'SUBSCRIBED') {
-        subscribedRef.current = true
-        setSupabaseRealtime('live')
-        syncPeers()
+    void (async () => {
+      if (usePrivateRealtime) {
+        const {
+          data: { session },
+        } = await sb.auth.getSession()
+        if (cancelled) return
+        if (!session?.access_token) {
+          channelRef.current = null
+          setSupabaseRealtime('error')
+          console.warn(
+            '[collab] No Supabase session — private Realtime needs VITE_USE_SUPABASE_AUTH=true and a logged-in user.',
+          )
+          return
+        }
+        sb.realtime.setAuth(session.access_token)
       }
-      if (status === 'CHANNEL_ERROR' || status === 'TIMED_OUT') {
-        subscribedRef.current = false
-        setSupabaseRealtime('error')
-        console.warn('[collab] Realtime channel error', err)
+
+      if (cancelled) return
+
+      const ch = sb.channel('nf-portal-workspace', {
+        config: {
+          ...(usePrivateRealtime ? { private: true } : {}),
+          broadcast: { ack: false },
+          presence: { key: user.id },
+        },
+      })
+      channelRef.current = ch
+
+      ch.on<NoteBroadcast>('broadcast', { event: 'note' }, (wr) => {
+        const payload = wr.payload
+        if (payload) applyRemoteNote(payload)
+      })
+
+      const syncPeers = () => {
+        const state = ch.presenceState() as Record<string, unknown[]>
+        setPeers(parsePresenceState(state, user.id))
       }
-      if (status === 'CLOSED') {
-        subscribedRef.current = false
-      }
-    })
+
+      ch.on('presence', { event: 'sync' }, syncPeers)
+      ch.on('presence', { event: 'join' }, syncPeers)
+      ch.on('presence', { event: 'leave' }, syncPeers)
+
+      ch.subscribe((status, err) => {
+        if (cancelled) return
+        if (status === 'SUBSCRIBED') {
+          subscribedRef.current = true
+          setSupabaseRealtime('live')
+          syncPeers()
+        }
+        if (status === 'CHANNEL_ERROR' || status === 'TIMED_OUT') {
+          subscribedRef.current = false
+          setSupabaseRealtime('error')
+          console.warn('[collab] Realtime channel error', err)
+        }
+        if (status === 'CLOSED') {
+          subscribedRef.current = false
+        }
+      })
+    })()
 
     return () => {
+      cancelled = true
       subscribedRef.current = false
+      authSub?.data.subscription.unsubscribe()
+      const ch = channelRef.current
       channelRef.current = null
-      void client.removeChannel(ch)
+      if (ch) void sb.removeChannel(ch)
       setPeers([])
       setSupabaseRealtime('off')
     }

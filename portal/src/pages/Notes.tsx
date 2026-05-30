@@ -625,7 +625,7 @@ export function NotesPage() {
 
       {!multiplayerLive && connection !== 'local_tabs' ? (
         <p className="rounded-md border border-amber-500/30 bg-amber-500/10 px-3 py-2 text-sm text-amber-900 dark:text-amber-200">
-          {N.supabaseHint}
+          {N.liveSyncHint}
         </p>
       ) : null}
 

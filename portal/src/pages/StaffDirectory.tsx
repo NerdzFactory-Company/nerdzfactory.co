@@ -1,4 +1,5 @@
-import { useMemo, useState } from 'react'
+import { useEffect, useMemo, useState } from 'react'
+import { useSearchParams } from 'react-router-dom'
 import {
   Search,
   Mail,
@@ -14,6 +15,8 @@ import {
   Copy,
   Check,
   ChevronRight,
+  Upload,
+  Loader2,
 } from 'lucide-react'
 import { format, parseISO } from 'date-fns'
 import { useAuth } from '@/context/AuthContext'
@@ -31,6 +34,7 @@ import { Avatar } from '@/components/ui/Avatar'
 import { PresenceDot } from '@/components/shared/PresenceDot'
 import { EmptyState } from '@/components/shared/EmptyState'
 import { brand, pages } from '@/content/copy'
+import { MediaUploadError, uploadHostedMediaFile } from '@/utils/mediaUpload'
 import { fmtDate, mailtoHref, roleLabel, cn, availabilityFromPeer } from '@/utils/helpers'
 import type { User } from '@/types'
 
@@ -52,8 +56,9 @@ function firstName(full: string) {
 
 export function StaffDirectoryPage() {
   const { user, updateProfile } = useAuth()
-  const { users, updateUser } = useData()
+  const { users, updateUser, dataStatus } = useData()
   const { peers, multiplayerLive, myAvailability } = useCollab()
+  const [searchParams, setSearchParams] = useSearchParams()
   const peerById = useMemo(() => new Map(peers.map((p) => [p.userId, p])), [peers])
   const [search, setSearch] = useState('')
   const [departmentFilter, setDepartmentFilter] = useState('all')
@@ -69,6 +74,23 @@ export function StaffDirectoryPage() {
     avatarUrl: '',
   })
   const [copiedUserId, setCopiedUserId] = useState<string | null>(null)
+  const [avatarUploadBusy, setAvatarUploadBusy] = useState(false)
+  const [avatarUploadError, setAvatarUploadError] = useState('')
+
+  useEffect(() => {
+    if (searchParams.get('profile') !== '1' || !user?.id) return
+    if (dataStatus !== 'ready') return
+    if (!users.some((u) => u.id === user.id)) {
+      const id = requestAnimationFrame(() => setSearchParams({}, { replace: true }))
+      return () => cancelAnimationFrame(id)
+    }
+    const id = requestAnimationFrame(() => {
+      setOpenId(user.id)
+      setEditing(false)
+      setSearchParams({}, { replace: true })
+    })
+    return () => cancelAnimationFrame(id)
+  }, [searchParams, setSearchParams, user?.id, users, dataStatus])
 
   const departments = useMemo(() => {
     const set = new Set(users.map((u) => u.department))
@@ -118,6 +140,7 @@ export function StaffDirectoryPage() {
 
   const startEdit = () => {
     if (!opened) return
+    setAvatarUploadError('')
     setDraft({
       bio: opened.bio ?? '',
       phone: opened.phone ?? '',
@@ -132,6 +155,7 @@ export function StaffDirectoryPage() {
 
   const cancelEdit = () => {
     setEditing(false)
+    setAvatarUploadError('')
     setDraft({
       bio: '',
       phone: '',
@@ -295,6 +319,7 @@ export function StaffDirectoryPage() {
         onClose={() => {
           setOpenId(null)
           setEditing(false)
+          setAvatarUploadError('')
         }}
         title={opened ? (editing ? P.editProfile : opened.name) : undefined}
         size="lg"
@@ -326,19 +351,108 @@ export function StaffDirectoryPage() {
                 saveEdit()
               }}
             >
-              <Input
-                label="Profile photo URL"
-                value={draft.avatarUrl}
-                onChange={(e) => setDraft({ ...draft, avatarUrl: e.target.value })}
-                placeholder="https://… (square image works best)"
+              <p className="rounded-md border border-border bg-surface-2/25 px-3 py-2 text-xs leading-relaxed text-muted">
+                {P.profileEditIntro}
+              </p>
+
+              <div className="rounded-md border border-border bg-surface-2/20 p-3">
+                <p className="text-sm font-medium text-fg">{P.profilePhotoSection}</p>
+                <p className="mt-1 text-xs text-muted">{P.profilePhotoHelp}</p>
+                <div className="mt-3 flex flex-col items-center gap-3 sm:flex-row sm:items-start">
+                  <Avatar
+                    name={opened.name}
+                    src={draft.avatarUrl.trim() || undefined}
+                    size="lg"
+                    className="ring-2 ring-border"
+                  />
+                  <div className="flex w-full flex-1 flex-col gap-2">
+                    <label className="inline-flex cursor-pointer justify-center sm:justify-start">
+                      <input
+                        type="file"
+                        accept="image/*"
+                        className="sr-only"
+                        disabled={avatarUploadBusy}
+                        onChange={async (ev) => {
+                          const file = ev.target.files?.[0]
+                          ev.target.value = ''
+                          if (!file) return
+                          if (!file.type.startsWith('image/')) {
+                            setAvatarUploadError('Choose an image file.')
+                            return
+                          }
+                          setAvatarUploadBusy(true)
+                          setAvatarUploadError('')
+                          try {
+                            const row = await uploadHostedMediaFile(file)
+                            if (row.kind === 'video') {
+                              setAvatarUploadError('Use an image file for your profile photo.')
+                              return
+                            }
+                            setDraft((d) => ({ ...d, avatarUrl: row.url }))
+                          } catch (err) {
+                            setAvatarUploadError(err instanceof MediaUploadError ? err.message : 'Upload failed.')
+                          } finally {
+                            setAvatarUploadBusy(false)
+                          }
+                        }}
+                      />
+                      <span className="inline-flex items-center gap-2 rounded-md border border-border bg-surface px-3 py-2 text-sm font-medium text-fg transition-colors hover:bg-surface-2">
+                        {avatarUploadBusy ? (
+                          <Loader2 className="h-4 w-4 animate-spin" aria-hidden />
+                        ) : (
+                          <Upload className="h-4 w-4" aria-hidden />
+                        )}
+                        {avatarUploadBusy ? P.profilePhotoUploading : P.profilePhotoUpload}
+                      </span>
+                    </label>
+                    <Input
+                      label={P.profilePhotoUrlLabel}
+                      value={draft.avatarUrl}
+                      onChange={(e) => {
+                        setDraft({ ...draft, avatarUrl: e.target.value })
+                        setAvatarUploadError('')
+                      }}
+                      placeholder={P.profilePhotoUrlPlaceholder}
+                    />
+                  </div>
+                </div>
+                {avatarUploadError ? <p className="mt-2 text-xs text-danger">{avatarUploadError}</p> : null}
+              </div>
+
+              <Textarea
+                label={P.about}
+                hint={P.profileAboutHelp}
+                rows={4}
+                value={draft.bio}
+                onChange={(e) => setDraft({ ...draft, bio: e.target.value })}
               />
-              <Textarea label={P.about} rows={3} value={draft.bio} onChange={(e) => setDraft({ ...draft, bio: e.target.value })} />
-              <Input label={P.workLocation} value={draft.workLocation} onChange={(e) => setDraft({ ...draft, workLocation: e.target.value })} />
-              <Input label={P.pronouns} value={draft.pronouns} onChange={(e) => setDraft({ ...draft, pronouns: e.target.value })} placeholder="e.g. she/her" />
-              <Input label="Phone" value={draft.phone} onChange={(e) => setDraft({ ...draft, phone: e.target.value })} />
-              <Input label={P.linkedin} value={draft.linkedinUrl} onChange={(e) => setDraft({ ...draft, linkedinUrl: e.target.value })} placeholder="https://linkedin.com/in/..." />
               <Input
-                label={`${P.skills} (comma separated)`}
+                label={P.workLocation}
+                value={draft.workLocation}
+                onChange={(e) => setDraft({ ...draft, workLocation: e.target.value })}
+              />
+              <Input
+                label={P.pronouns}
+                value={draft.pronouns}
+                onChange={(e) => setDraft({ ...draft, pronouns: e.target.value })}
+                placeholder="e.g. she/her"
+              />
+              <Input
+                label={P.phoneLabel}
+                hint={P.phoneHint}
+                value={draft.phone}
+                onChange={(e) => setDraft({ ...draft, phone: e.target.value })}
+              />
+              <Input
+                label={P.linkedin}
+                hint={P.linkedinHint}
+                value={draft.linkedinUrl}
+                onChange={(e) => setDraft({ ...draft, linkedinUrl: e.target.value })}
+                placeholder="https://linkedin.com/in/…"
+              />
+              <Input
+                label={P.skills}
+                hint={P.skillsHint}
                 value={draft.skills}
                 onChange={(e) => setDraft({ ...draft, skills: e.target.value })}
               />

@@ -62,6 +62,7 @@ export default function App() {
                       <Route path="/onboarding" element={<OnboardingPage />} />
                       <Route path="/announcements" element={<AnnouncementsPage />} />
                       <Route path="/leave" element={<LeaveRequestsPage />} />
+                      <Route path="/profile" element={<Navigate to="/directory?profile=1" replace />} />
                       <Route path="/directory" element={<StaffDirectoryPage />} />
                       <Route path="/documents" element={<DocumentLibraryPage />} />
                       <Route path="/recognition" element={<RecognitionPage />} />

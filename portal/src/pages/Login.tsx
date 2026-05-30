@@ -5,6 +5,7 @@ import { Card } from '@/components/ui/Card'
 import { Input } from '@/components/ui/Input'
 import { Button } from '@/components/ui/Button'
 import { useAuth } from '@/context/AuthContext'
+import { isSupabaseAuthEnabled } from '@/lib/authMode'
 
 const DEMO = [
   { label: 'Admin', email: 'admin@nerdzfactory.co', password: 'admin123' },
@@ -87,27 +88,36 @@ export function LoginPage() {
         </Button>
       </form>
 
-      <div className="mt-6 border-t border-border pt-4">
-        <p className="mb-2 text-xs font-medium uppercase tracking-wide text-muted">
-          Demo accounts
-        </p>
-        <div className="grid grid-cols-2 gap-2">
-          {DEMO.map((d) => (
-            <button
-              key={d.email}
-              type="button"
-              onClick={() => fillDemo(d)}
-              className="rounded-md border border-border bg-surface-2 px-3 py-2 text-left text-xs hover:border-accent/40 hover:bg-accent/5 ring-focus"
-            >
-              <div className="font-semibold text-fg">{d.label}</div>
-              <div className="truncate text-muted">{d.email}</div>
-            </button>
-          ))}
+      {isSupabaseAuthEnabled() ? (
+        <div className="mt-6 border-t border-border pt-4">
+          <p className="text-xs text-muted">
+            Your organization uses a managed sign-in. Use the <strong className="text-fg">work email and password</strong>{' '}
+            from your administrator. If you can’t sign in, contact People & culture or IT.
+          </p>
         </div>
-        <p className="mt-3 text-[11px] text-muted">
-          Click a demo card to fill the form, then press Sign in.
-        </p>
-      </div>
+      ) : (
+        <div className="mt-6 border-t border-border pt-4">
+          <p className="mb-2 text-xs font-medium uppercase tracking-wide text-muted">
+            Demo accounts
+          </p>
+          <div className="grid grid-cols-2 gap-2">
+            {DEMO.map((d) => (
+              <button
+                key={d.email}
+                type="button"
+                onClick={() => fillDemo(d)}
+                className="rounded-md border border-border bg-surface-2 px-3 py-2 text-left text-xs hover:border-accent/40 hover:bg-accent/5 ring-focus"
+              >
+                <div className="font-semibold text-fg">{d.label}</div>
+                <div className="truncate text-muted">{d.email}</div>
+              </button>
+            ))}
+          </div>
+          <p className="mt-3 text-[11px] text-muted">
+            Click a demo card to fill the form, then press Sign in.
+          </p>
+        </div>
+      )}
     </Card>
   )
 }

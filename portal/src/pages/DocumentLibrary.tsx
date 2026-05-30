@@ -345,7 +345,7 @@ export function DocumentLibraryPage() {
                     onClick={(e) => {
                       e.stopPropagation()
                       window.alert(
-                        `Download placeholder: ${d.fileName}\n\nReal file storage comes with Phase 9 (Supabase Storage).`,
+                        `Preview only — "${d.fileName}"\n\nFile downloads will be available once document storage is fully enabled for this workspace.`,
                       )
                     }}
                     className="mt-3 inline-flex items-center justify-center gap-2 rounded-md border border-border bg-surface px-3 py-2 text-sm font-medium text-fg hover:bg-surface-2 ring-focus"
@@ -364,7 +364,7 @@ export function DocumentLibraryPage() {
         open={uploadOpen}
         onClose={() => setUploadOpen(false)}
         title="Upload document"
-        description="Filename is stored as metadata only. File uploads land with Supabase in Phase 9."
+        description="For now this saves the document details in the library. Full file storage and downloads are coming soon."
         size="lg"
         footer={
           <>

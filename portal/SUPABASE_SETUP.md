@@ -59,13 +59,69 @@ With only these set, **today’s code** already uses Supabase for **Realtime** (
    - **Site URL**: your production portal origin, e.g. `https://portal.nerdzfactory.com`
    - **Redirect URLs**: add the same + `http://localhost:5173/**` for local dev.
 
-### 3.2 What you implement in the app (high level)
+### 3.2 Wire the portal app to Supabase Auth (exact steps)
 
-1. Install auth helper (optional but nice): `@supabase/auth-ui-react` **or** use `supabase.auth.signInWithPassword` / `signUp` from `src/lib/supabase.ts`.
-2. Replace `AuthContext` so that:
-   - On load, call `supabase.auth.getSession()` and store the **session user** (id, email, metadata).
-   - **Do not** store passwords in `localStorage`; Supabase keeps the session in **secure** storage by default.
-3. Map Supabase `user.id` to your **profile** row (see §4) for `name`, `role`, `department`, etc.
+The repo supports **two modes**:
+
+| Mode | When |
+|------|------|
+| **Mock** (default) | `VITE_USE_SUPABASE_AUTH` is unset or not `"true"` — login uses `mockData` seed users. |
+| **Supabase** | `VITE_USE_SUPABASE_AUTH=true` **and** `VITE_SUPABASE_URL` + `VITE_SUPABASE_ANON_KEY` (publishable key) are set — login calls `supabase.auth.signInWithPassword`. |
+
+**Step 1 — Dashboard (you already did §3.1)**  
+Authentication → Providers → **Email** enabled.  
+**URL configuration**: Site URL + redirect URLs include `http://localhost:5173/**` and your production origin.
+
+**Step 2 — Create a staff user Supabase can authenticate**
+
+1. Go to **Authentication** → **Users** → **Add user** → **Create new user**.
+2. Enter **email** and **password** (the same ones you will type on the portal login form).
+3. After the user exists, open the user row → edit **User Metadata** (raw JSON). Minimal example:
+
+```json
+{
+  "name": "Ada Admin",
+  "role": "admin",
+  "department": "Operations",
+  "job_title": "COO"
+}
+```
+
+Allowed **`role`** values in the app: `staff`, `team_lead`, `hr`, `admin`. Anything else defaults to `staff`.
+
+Optional metadata keys the app maps through: `joined_at`, `avatar_url`, `bio`, `phone`, `work_location`, `pronouns`, `linkedin_url`, `reports_to_id`, `active` (default true).
+
+With a **`profiles`** row for the user (§4), **`AuthContext` loads that row** and it **overrides** metadata for **name / role / department / job title / avatar / active**. If there is no row yet, **user_metadata** still drives those fields until you insert a profile or add a signup trigger.
+
+**Step 3 — Environment file (portal folder)**
+
+Create or edit `.env.local`:
+
+```env
+VITE_SUPABASE_URL=https://YOUR-PROJECT.supabase.co
+VITE_SUPABASE_ANON_KEY=sb_publishable_...your_publishable_key...
+VITE_USE_SUPABASE_AUTH=true
+```
+
+Restart `npm run dev` after saving.
+
+**Step 4 — What the code does (no extra npm package required)**
+
+- `src/lib/supabase.ts` — `createClient` (already in the project).
+- `src/lib/authMode.ts` — `isSupabaseAuthEnabled()` reads the env flag + client.
+- `src/context/AuthContext.tsx`:
+  - On load: `supabase.auth.getSession()` and `onAuthStateChange` keep the session in sync.
+  - **Login:** `signInWithPassword({ email, password })`.
+  - **Logout:** `signOut()`.
+  - **Session → `User`:** `sessionToPortalUser()` maps `user.id` (UUID), `email`, and `user_metadata` into your existing portal `User` shape (no passwords stored locally).
+- `src/pages/Login.tsx` — Demo quick-fill buttons are **hidden** when Supabase auth is on; a short hint points here.
+
+**Step 5 — After login**
+
+- **Realtime / notes** use the same Supabase project; presence uses the authenticated user id.
+- **Tasks, announcements, etc.** still read **mock `DataContext`** until you migrate those to Postgres — new auth users get **UUID** ids, so old seed data keyed to `u_staff` will not match. Plan: add **`profiles`** and sync or migrate data (§4).
+
+**Optional package:** `@supabase/auth-ui-react` is **not** required; the login form already calls `signInWithPassword`.
 
 ### 3.3 Invite-only / no public sign-up (common for internal portals)
 
@@ -127,6 +183,17 @@ create policy "Users update own profile"
 
 **Tighten policies** before production (e.g. tenant id, HR can update others).
 
+### 4.2 Full portal domain data (`DataContext` → Postgres)
+
+The Vite app can load **all** data that was previously mock/localStorage-only:
+
+- Run **`portal/supabase/migrations/20260518120000_portal_data_tables.sql`** in the SQL Editor (extends `profiles`, adds `portal_tasks`, `portal_announcements`, …, team seed rows).
+- In `.env.local`: **`VITE_USE_SUPABASE_DATA=true`** (together with **`VITE_USE_SUPABASE_AUTH=true`** and valid `VITE_SUPABASE_*`).
+
+Staff list = **`profiles`**. Tasks, check-ins, leave, documents, recognition, events, inbox, onboarding videos/checklist/progress use the `portal_*` tables. RLS is **permissive for any logged-in user** on those tables (fine for a small internal org); tighten before wider exposure.
+
+**Still local-first:** workspace **note pages** (`CollabContext`) keep content in the browser + Realtime broadcast until you add a `workspace_notes` table and migrate that context.
+
 ---
 
 ## 5. Row Level Security (RLS) — fixes only Supabase can fully solve
@@ -167,46 +234,108 @@ Today the app uses a **broadcast** channel when Supabase is configured.
 
 ## 7. Going live checklist (minimal)
 
-- [ ] Production Supabase project created; **backups** considered (paid plan for production).
-- [ ] **Auth** redirect URLs include production domain.
-- [ ] `.env` / hosting dashboard: **`VITE_*`** vars set on build host (Vercel/Netlify/etc.).
-- [ ] **RLS** enabled and tested on all public tables.
-- [ ] Remove or **hide** demo login quick-fill on production build (env flag).
-- [ ] **HTTPS** only on portal; cookies / auth require it.
-- [ ] **Service role** key only in server/Edge Functions — never in Vite bundle.
+Do these in order before you point a real domain at the portal.
+
+### 7.1 Supabase (production project)
+
+1. Create a **production** project (keep a separate **dev** project if you like).
+2. **Authentication → URL Configuration**  
+   - **Site URL**: `https://your-portal-domain.com`  
+   - **Redirect URLs**: production URL + any preview URLs + `http://localhost:5173/**` if you still test locally against prod.
+3. **Auth → Providers**: Email on; turn off public sign-up if you only invite staff from the dashboard.
+4. **Database backups**: Free tier is not a full DR plan; for real production data, use a plan with backups / PITR per Supabase docs.
+5. **RLS**: Every table in `public` that the browser can hit must have RLS on and policies you tested (at least **`profiles`** plus any future tables).
+6. **API keys**: Copy **Project URL** and **anon / publishable** key into your host’s build env — never the **service_role** key in the frontend.
+
+### 7.2 Hosting (Vite build)
+
+Variables must be available **at build time** (Vite inlines `import.meta.env.VITE_*`):
+
+| Variable | Purpose |
+|----------|---------|
+| `VITE_SUPABASE_URL` | Project URL |
+| `VITE_SUPABASE_ANON_KEY` | Anon / publishable key |
+| `VITE_USE_SUPABASE_AUTH` | `true` in production for real login |
+
+**Example (Vercel):** Project → **Settings → Environment Variables** → add the three for **Production**. Trigger a new deploy after saving.
+
+**Example (Netlify):** Site → **Site configuration → Environment variables** → same.
+
+Restart / redeploy after any change.
+
+### 7.3 App behaviour in production
+
+- **Demo login**: With `VITE_USE_SUPABASE_AUTH=true`, the login page already hides demo quick-fill; keep that for production builds.
+- **HTTPS**: Serve the portal only over `https://` so sessions behave as expected.
+- **Service role**: Server-only (Edge Functions, scripts, automation). It must **not** appear in the Vite bundle or public env.
+
+### 7.4 Realtime settings (Free tier gotcha)
+
+If the dashboard **refuses to save** Realtime settings (e.g. max payload vs 256 KB), leave defaults for now or ask Supabase support. See earlier notes in this doc: **private-only Realtime** may require a paid tier to edit those sliders. The app can still use Realtime on Free with the defaults.
 
 ---
 
 ## 8. How this portal ties together (simplest path)
 
-1. **Week 1 – Auth + profiles**  
-   Supabase Auth login → `profiles` row → `AuthContext` reads profile from Supabase instead of mock.
+### Done in this repo (Week 1 baseline)
 
-2. **Week 2 – One domain**  
-   e.g. **Notes**: `workspace_notes` table + RLS + replace `CollabContext` localStorage with `supabase.from('workspace_notes').select/upsert`.
+- **Supabase Auth** when `VITE_USE_SUPABASE_AUTH=true`: email/password via `AuthContext` + `signInWithPassword` / `signOut`.
+- **`public.profiles`**: After login, **`AuthContext` loads** `select` from `profiles` (if the table exists) and **merges over** JWT `user_metadata` for name, role, department, job title, avatar, active.  
+  **`updateProfile`** **upserts** into `profiles` and still updates Auth metadata for fields the DB table does not store (e.g. bio, skills).
 
-3. **Week 3+**  
-   Repeat for tasks, announcements, leave, etc., reusing the same **org_id + RLS** pattern.
+You still need a **row per user** in `profiles` (SQL insert or trigger on signup). Without a row, the UI falls back to metadata only.
 
-4. **Realtime**  
-   Either keep current broadcast for “good enough” internal use, or move to **Realtime + Postgres** for authoritative sync.
+### Week 2 – One domain (next big migration)
+
+Pick **notes** or **tasks**:
+
+1. Add a Postgres table (e.g. `workspace_notes`) matching the shapes in `src/types` / `CollabContext`.
+2. **RLS** policies using `auth.uid()` (and later `org_id` if multi-tenant).
+3. Replace `localStorage` reads/writes in `CollabContext` with `supabase.from(...).select` / `upsert` (keep or drop broadcast as needed).
+
+### Week 3+
+
+Repeat the same pattern for announcements, leave, documents, etc.
+
+### Realtime
+
+Broadcast + presence (current) is fine for internal MVP. Move to **`postgres_changes`** when the DB is the source of truth for note bodies and you enable replication for that table (§6).
 
 ---
 
 ## 9. Helpful Supabase docs (bookmark)
 
+**Core**
+
 - [Getting started](https://supabase.com/docs/guides/getting-started)
 - [Auth](https://supabase.com/docs/guides/auth)
-- [RLS](https://supabase.com/docs/guides/auth/row-level-security)
+- [Row Level Security](https://supabase.com/docs/guides/auth/row-level-security)
 - [Realtime](https://supabase.com/docs/guides/realtime)
 - [Vite + Supabase](https://supabase.com/docs/guides/getting-started/quickstarts/reactjs)
+
+**Often used with this portal**
+
+- [User management / metadata / profiles](https://supabase.com/docs/guides/auth/managing-user-data)
+- [Realtime authorization (private channels)](https://supabase.com/docs/guides/realtime/authorization)
+- [Database webhooks & triggers (new user → new profile row)](https://supabase.com/docs/guides/database/webhooks)
 
 ---
 
 ## 10. Support inside this repo
 
-- **Env template**: `.env.example`
-- **Supabase client**: `src/lib/supabase.ts`
-- **Collab / notes today**: `src/context/CollabContext.tsx`
+| What | Where |
+|------|--------|
+| Env template | `portal/.env.example` |
+| Example RLS (profiles + Realtime) | `portal/supabase/rls-section-5-and-6.sql` |
+| **Portal domain tables** (tasks, announcements, …) | `portal/supabase/migrations/20260518120000_portal_data_tables.sql` |
+| Supabase dataset fetch + mappers | `portal/src/lib/supabase/portalDataset.ts` |
+| Supabase vs local **data** switch | `portal/src/lib/dataMode.ts` (`VITE_USE_SUPABASE_DATA`) |
+| Supabase client + Realtime client options | `portal/src/lib/supabase.ts` |
+| Mock vs Supabase Auth switch | `portal/src/lib/authMode.ts` |
+| Login + session + **`profiles` load/upsert** | `portal/src/context/AuthContext.tsx` |
+| Notes / presence / broadcast | `portal/src/context/CollabContext.tsx` |
+| **Data** (local vs Supabase provider) | `portal/src/context/DataContext.tsx`, `DataContext.local.tsx`, `DataContext.supabase.tsx` |
+| Domain types (mirror in SQL when you migrate) | `portal/src/types/index.ts` |
+| Mock seeds (local mode / reference) | `portal/src/context/DataContext.local.tsx`, `portal/src/data/mockData.ts` |
 
-For schema design specific to NerdzFactory (exact columns + policies), iterate with your team or AI using `src/types/index.ts` and `DataContext` shapes as the source of truth.
+For NerdzFactory-specific columns and policies, use `User`, `WorkspaceNote`, `Task`, etc. in `src/types/index.ts` as the contract for new tables and RLS rules.

@@ -200,12 +200,12 @@ export const pages = {
   notes: {
     title: 'Workspace notes',
     subtitle:
-      'Notion-style pages with blocks, nested pages, and sharing — live sync when Realtime is enabled.',
+      'Shared pages with blocks, nested pages, and sharing — edits can sync live for your whole team when that’s enabled.',
     newNote: 'New page',
     allNotes: 'Pages',
     titleLabel: 'Title',
     bodyLabel: 'Note',
-    bodyPlaceholder: 'Type here — teammates see updates when Supabase Realtime is enabled.',
+    bodyPlaceholder: 'Type here — teammates see changes here when live collaboration is on for your workspace.',
     emptyTitle: 'Pick or create a page',
     emptyBody:
       'Write specs, meeting notes, and runbooks. Add sub-pages, blocks, and share with teams, departments, or individuals.',
@@ -220,7 +220,8 @@ export const pages = {
     shareReadOnlyHint:
       'You can review who has access and copy a share link below. To change settings, you must be the page owner (or an admin).',
     shareLinkToPage: 'Link to this page',
-    shareLinkCopyHelp: 'Send this URL to someone who should open this page. They must sign in; the key in the link grants access here.',
+    shareLinkCopyHelp:
+      'Send this URL to someone who should open this page. They must sign in; only people with this link can open it here.',
     shareNoLinkActive:
       'No share link is turned on yet, so there is no URL to copy. Ask the page owner to open Share, enable link sharing, then copy the link from there.',
     sharePageOwner: 'Page owner',
@@ -256,7 +257,7 @@ export const pages = {
     shareLinkOn: 'Link on',
     shareLinkOff: 'Link off',
     shareLinkCopy: 'Copy link',
-    shareLinkRegenerate: 'New link key',
+    shareLinkRegenerate: 'Create a new link',
     shareLinkCopied: 'Copied',
     invitedEmails: 'email invites',
     blockMenuTitle: 'Turn into…',
@@ -290,10 +291,10 @@ export const pages = {
     statusLive: 'Team live',
     statusConnecting: 'Connecting…',
     statusLocalTabs: 'This browser only',
-    statusError: 'Realtime error',
+    statusError: 'Live sync unavailable',
     statusSolo: 'Offline collaboration',
-    supabaseHint:
-      'Set VITE_SUPABASE_URL and VITE_SUPABASE_ANON_KEY to enable live edits and presence with your team. Until then, notes are saved in this browser and sync across your tabs only.',
+    liveSyncHint:
+      'When your workspace has live collaboration enabled, edits and presence update for everyone. Until then, notes stay in this browser and sync across your own tabs.',
   },
   weeklyUpdate: {
     title: 'Weekly update',
@@ -355,13 +356,13 @@ export const pages = {
   people: {
     title: 'People',
     subtitle:
-      'Your org directory for NerdzFactory — find owners, skills, and reporting lines, then reach people on their work email. Matches how we present ourselves publicly: useful products, clear communication, one team.',
+      'Who’s who at NerdzFactory — roles, teams, and how to reach coworkers on work email. Update your own photo and contact details so the directory stays useful for everyone.',
     searchPlaceholder: 'Search by name, email, role, department, or skill…',
     allDepartments: 'All departments',
     directoryNote:
-      'Profiles show workspace access only. For company switchboard and HQ address, see nerdzfactory.co.',
+      'Profiles are for internal use. For the public site, switchboard, and HQ address, see nerdzfactory.co.',
     presenceNote:
-      'Green, amber, red, and violet dots show availability when Supabase Realtime is enabled (see .env.example). Otherwise everyone appears offline except your own status.',
+      'Status dots show availability when live presence is on for your workspace. Until then, only your own status updates here.',
     sendEmail: 'Send email',
     copyEmail: 'Copy address',
     copied: 'Copied',
@@ -379,6 +380,21 @@ export const pages = {
     noMatches: 'No matches',
     noMatchesHint: 'Try another search or choose a different department.',
     editProfile: 'Edit my profile',
+    profileEditIntro:
+      'Help teammates recognize you. Job title, department, and reporting line are kept accurate by People & culture — you can refresh your photo, how to reach you, and a short intro.',
+    profilePhotoSection: 'Profile photo',
+    profilePhotoHelp:
+      'Upload a photo the same way announcement images go to company hosting, or paste a link to a square image.',
+    profilePhotoUpload: 'Upload photo',
+    profilePhotoUploading: 'Uploading…',
+    profilePhotoUrlLabel: 'Image link (optional)',
+    profilePhotoUrlPlaceholder: 'https://…',
+    profileAboutHelp:
+      'Optional — what you’re working on, how you like to collaborate, or topics you’re happy to help with.',
+    phoneLabel: 'Phone',
+    phoneHint: 'Shown in the directory — work or mobile, whichever you prefer colleagues to use.',
+    linkedinHint: 'Optional. Only add this if you’re comfortable listing it for coworkers.',
+    skillsHint: 'Comma-separated — tools, topics, or areas you can help with.',
     emailSubject: (firstName: string) => `${firstName} — message from Team space`,
     emailBody: (recipientFirst: string, senderName: string) =>
       `Hi ${recipientFirst},\n\n\n— ${senderName}`,
@@ -402,7 +418,7 @@ export const pages = {
     schedule: 'Schedule',
     google: 'Google Calendar',
     googleTabIntro:
-      'This view embeds your team’s public Google Calendar. The URL is set by your workspace admin in environment configuration.',
+      'This view embeds your team’s public Google Calendar. Your workspace administrator provides the calendar link.',
     externalSyncError: 'Could not load synced calendar events. Check the server feed URL.',
     externalBadge: 'Synced',
     scheduleInteractHint:

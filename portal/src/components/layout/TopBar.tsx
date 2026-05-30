@@ -127,7 +127,11 @@ export function TopBar({ onOpenDrawer }: TopBarProps) {
               <ul className="py-1">
                 <li>
                   <button
-                    onClick={() => setMenuOpen(false)}
+                    type="button"
+                    onClick={() => {
+                      setMenuOpen(false)
+                      navigate('/profile')
+                    }}
                     className="flex w-full items-center gap-2.5 px-3 py-2 text-sm text-fg hover:bg-surface-2"
                   >
                     <UserIcon className="h-4 w-4 text-muted" />
@@ -135,7 +139,8 @@ export function TopBar({ onOpenDrawer }: TopBarProps) {
                   </button>
                 </li>
                 <li>
-                  <button
+                    <button
+                    type="button"
                     onClick={() => {
                       setMenuOpen(false)
                       logout()

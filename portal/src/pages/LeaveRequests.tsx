@@ -425,7 +425,7 @@ export function LeaveRequestsPage() {
             value={draft.supportingDocName}
             onChange={(e) => setDraft({ ...draft, supportingDocName: e.target.value })}
             placeholder="e.g. medical-cert.pdf"
-            hint="Just the filename for now \u2014 real uploads come with Supabase."
+            hint="Type a filename for your records. Attaching files directly will be available in a later update."
           />
         </form>
       </Modal>

@@ -12,14 +12,14 @@ function inferKind(file: File): AnnouncementMedia['kind'] {
 }
 
 /**
- * Sends multipart form field "file" to VITE_MEDIA_UPLOAD_URL.
- * Expects JSON: { "url": "https://..." } or { "ok": true, "url": "..." }.
+ * POST multipart field `file` to the workspace media endpoint (see `.env.example`).
+ * Expects JSON: `{ "url": "https://..." }` or `{ "ok": true, "url": "..." }`.
  */
-export async function uploadAnnouncementMedia(file: File): Promise<AnnouncementMedia> {
-  const endpoint = import.meta.env.VITE_MEDIA_UPLOAD_URL
+export async function uploadHostedMediaFile(file: File): Promise<AnnouncementMedia> {
+  const endpoint = import.meta.env.VITE_MEDIA_UPLOAD_URL?.trim()
   if (!endpoint) {
     throw new MediaUploadError(
-      'Upload is not configured. Set VITE_MEDIA_UPLOAD_URL to your upload.php URL, or paste a direct link instead.',
+      'File upload is not connected for this workspace yet. Paste a direct https link instead, or ask your administrator.',
     )
   }
 
@@ -35,23 +35,26 @@ export async function uploadAnnouncementMedia(file: File): Promise<AnnouncementM
       mode: 'cors',
     })
   } catch {
-    throw new MediaUploadError('Network error while uploading. Check CORS on the server.')
+    throw new MediaUploadError('Could not reach the upload service. Check your connection and try again.')
   }
 
   if (!res.ok) {
     const t = await res.text().catch(() => '')
-    throw new MediaUploadError(t || `Upload failed (${res.status})`)
+    throw new MediaUploadError(t || `Upload did not succeed (${res.status}).`)
   }
 
   const data = (await res.json()) as { url?: string; ok?: boolean; kind?: AnnouncementMedia['kind'] }
   const url = typeof data.url === 'string' ? data.url.trim() : ''
   if (!url) {
-    throw new MediaUploadError('Server did not return a file URL.')
+    throw new MediaUploadError('The server did not return a usable link. Try again or paste a link manually.')
   }
 
   const kind = data.kind ?? inferKind(file)
   return { kind, url }
 }
+
+/** Announcements use the same upload endpoint as other workspace media. */
+export const uploadAnnouncementMedia = uploadHostedMediaFile
 
 export function parseMediaUrlInput(raw: string): AnnouncementMedia | null {
   const url = raw.trim()

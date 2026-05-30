@@ -61,7 +61,7 @@ const labels = {
   addLink: 'Add link',
   upload: 'Upload file',
   uploading: 'Uploading…',
-  help: 'Upload sends files to your site when VITE_MEDIA_UPLOAD_URL is set (see hosting/portal-media). You can always paste a direct HTTPS link.',
+  help: 'Upload sends files to your company hosting, same as other workspace media. You can always paste a direct https link instead.',
   remove: 'Remove',
 }
 
