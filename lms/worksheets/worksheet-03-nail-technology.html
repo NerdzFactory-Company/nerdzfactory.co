@@ -1,0 +1,690 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8"/>
+<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0"/>
+<title>Worksheet — Nail Technology</title>
+<style>
+  /* ── Reset & base ── */
+  *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+  :root {
+    --brand:   #7B3F5E;
+    --light:   #F7EEF3;
+    --mid:     #D4A0BA;
+    --navy:    #2C3E50;
+    --grey:    #5D6D7E;
+    --lgrey:   #F2F3F4;
+    --white:   #FFFFFF;
+    --text:    #1A1A2E;
+    --radius:  10px;
+    --shadow:  0 2px 12px rgba(0,0,0,0.08);
+  }
+
+  html { font-size: 16px; }
+  body {
+    font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Arial, sans-serif;
+    background: #F5F7FA;
+    color: var(--text);
+    min-height: 100vh;
+    padding-bottom: 40px;
+  }
+
+  /* ── Header ── */
+  .header {
+    background: var(--brand);
+    color: white;
+    padding: 20px 20px 16px;
+    position: sticky;
+    top: 0;
+    z-index: 100;
+  }
+  .header-eyebrow {
+    font-size: 11px;
+    letter-spacing: 1.5px;
+    text-transform: uppercase;
+    opacity: 0.7;
+    margin-bottom: 4px;
+  }
+  .header-title {
+    font-size: 20px;
+    font-weight: 700;
+    line-height: 1.2;
+  }
+  .header-sub {
+    font-size: 12px;
+    opacity: 0.65;
+    margin-top: 3px;
+  }
+
+  /* ── Progress bar ── */
+  .progress-wrap {
+    background: rgba(255,255,255,0.25);
+    height: 4px;
+    margin-top: 12px;
+    border-radius: 4px;
+    overflow: hidden;
+  }
+  .progress-bar {
+    height: 100%;
+    background: white;
+    width: 0%;
+    border-radius: 4px;
+    transition: width 0.4s ease;
+  }
+  .progress-label {
+    font-size: 11px;
+    opacity: 0.7;
+    margin-top: 4px;
+  }
+
+  /* ── Content wrapper ── */
+  .content { max-width: 520px; margin: 0 auto; padding: 20px 16px 0; }
+
+  /* ── Learner info card ── */
+  .info-card {
+    background: var(--white);
+    border-radius: var(--radius);
+    padding: 18px 16px;
+    box-shadow: var(--shadow);
+    margin-bottom: 20px;
+  }
+  .info-card label {
+    display: block;
+    font-size: 11px;
+    font-weight: 700;
+    text-transform: uppercase;
+    letter-spacing: 0.8px;
+    color: var(--grey);
+    margin-bottom: 5px;
+  }
+  .info-card input[type="text"] {
+    width: 100%;
+    border: 1.5px solid #DDE3EA;
+    border-radius: 6px;
+    padding: 10px 12px;
+    font-size: 15px;
+    color: var(--text);
+    background: var(--lgrey);
+    margin-bottom: 14px;
+    outline: none;
+    transition: border-color 0.2s;
+    -webkit-appearance: none;
+  }
+  .info-card input[type="text"]:focus { border-color: var(--brand); background: white; }
+  .info-card input[type="text"]:last-child { margin-bottom: 0; }
+
+  /* ── Section ── */
+  .section {
+    background: var(--white);
+    border-radius: var(--radius);
+    padding: 20px 16px;
+    box-shadow: var(--shadow);
+    margin-bottom: 16px;
+  }
+  .section-header {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    margin-bottom: 14px;
+    padding-bottom: 12px;
+    border-bottom: 2px solid var(--light);
+  }
+  .section-num {
+    width: 30px; height: 30px;
+    border-radius: 50%;
+    background: var(--brand);
+    color: white;
+    font-size: 13px;
+    font-weight: 700;
+    display: flex; align-items: center; justify-content: center;
+    flex-shrink: 0;
+  }
+  .section-title {
+    font-size: 16px;
+    font-weight: 700;
+    color: var(--navy);
+    line-height: 1.2;
+  }
+
+  /* ── Definition box ── */
+  .def-box {
+    background: var(--light);
+    border-left: 4px solid var(--brand);
+    border-radius: 0 var(--radius) var(--radius) 0;
+    padding: 14px 14px 14px 16px;
+    margin-bottom: 16px;
+    font-size: 14px;
+    line-height: 1.6;
+    color: var(--navy);
+  }
+  .def-label {
+    font-weight: 700;
+    color: var(--brand);
+    margin-bottom: 4px;
+    font-size: 12px;
+    text-transform: uppercase;
+    letter-spacing: 0.6px;
+  }
+
+  /* ── Skill cards ── */
+  .skill-card {
+    display: flex;
+    gap: 12px;
+    align-items: flex-start;
+    padding: 12px 0;
+    border-bottom: 1px solid var(--lgrey);
+  }
+  .skill-card:last-child { border-bottom: none; padding-bottom: 0; }
+  .skill-num {
+    width: 26px; height: 26px;
+    border-radius: 50%;
+    background: var(--brand);
+    color: white;
+    font-size: 12px;
+    font-weight: 700;
+    display: flex; align-items: center; justify-content: center;
+    flex-shrink: 0;
+    margin-top: 2px;
+  }
+  .skill-name { font-weight: 700; font-size: 14px; color: var(--brand); margin-bottom: 3px; }
+  .skill-desc { font-size: 13px; line-height: 1.55; color: #444; }
+
+  /* ── Question label ── */
+  .q-label {
+    font-size: 13px;
+    font-weight: 700;
+    color: var(--navy);
+    margin-bottom: 8px;
+    line-height: 1.4;
+  }
+  .q-hint {
+    font-size: 12px;
+    color: var(--grey);
+    margin-bottom: 8px;
+    font-style: italic;
+  }
+
+  /* ── Textarea ── */
+  textarea {
+    width: 100%;
+    border: 1.5px solid #DDE3EA;
+    border-radius: 8px;
+    padding: 11px 12px;
+    font-size: 14px;
+    font-family: inherit;
+    color: var(--text);
+    background: var(--lgrey);
+    resize: vertical;
+    min-height: 88px;
+    line-height: 1.5;
+    outline: none;
+    transition: border-color 0.2s;
+    -webkit-appearance: none;
+    margin-bottom: 16px;
+  }
+  textarea:focus { border-color: var(--brand); background: white; }
+  textarea:last-child { margin-bottom: 0; }
+
+  /* ── Skill checkboxes ── */
+  .skill-check {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    padding: 11px 12px;
+    border: 1.5px solid #DDE3EA;
+    border-radius: 8px;
+    margin-bottom: 8px;
+    cursor: pointer;
+    transition: border-color 0.2s, background 0.2s;
+    background: var(--lgrey);
+  }
+  .skill-check:last-child { margin-bottom: 0; }
+  .skill-check input[type="checkbox"] { display: none; }
+  .skill-check .checkmark {
+    width: 20px; height: 20px;
+    border-radius: 5px;
+    border: 2px solid var(--mid);
+    background: white;
+    display: flex; align-items: center; justify-content: center;
+    flex-shrink: 0;
+    transition: all 0.2s;
+  }
+  .skill-check input:checked ~ .checkmark {
+    background: var(--brand);
+    border-color: var(--brand);
+  }
+  .skill-check input:checked ~ .checkmark::after {
+    content: '';
+    width: 5px; height: 9px;
+    border: 2px solid white;
+    border-top: none; border-left: none;
+    transform: rotate(45deg) translate(-1px, -1px);
+    display: block;
+  }
+  .skill-check input:checked ~ .skill-check-label { color: var(--brand); font-weight: 600; }
+  .skill-check:has(input:checked) { border-color: var(--brand); background: var(--light); }
+  .skill-check-label { font-size: 14px; color: var(--navy); }
+
+  /* ── Radio group ── */
+  .radio-group { margin-bottom: 0; }
+  .radio-opt {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    padding: 10px 12px;
+    border: 1.5px solid #DDE3EA;
+    border-radius: 8px;
+    margin-bottom: 8px;
+    cursor: pointer;
+    background: var(--lgrey);
+    transition: border-color 0.2s, background 0.2s;
+  }
+  .radio-opt:last-child { margin-bottom: 0; }
+  .radio-opt input[type="radio"] { display: none; }
+  .radio-dot {
+    width: 18px; height: 18px;
+    border-radius: 50%;
+    border: 2px solid var(--mid);
+    background: white;
+    flex-shrink: 0;
+    display: flex; align-items: center; justify-content: center;
+    transition: all 0.2s;
+  }
+  .radio-opt input:checked ~ .radio-dot {
+    border-color: var(--brand);
+    background: var(--brand);
+  }
+  .radio-opt input:checked ~ .radio-dot::after {
+    content: '';
+    width: 6px; height: 6px;
+    border-radius: 50%;
+    background: white;
+    display: block;
+  }
+  .radio-opt:has(input:checked) { border-color: var(--brand); background: var(--light); }
+  .radio-opt span:last-child { font-size: 14px; color: var(--navy); }
+
+  /* ── Commit box ── */
+  .commit-box {
+    background: var(--brand);
+    border-radius: var(--radius);
+    padding: 18px 16px;
+    color: white;
+    margin-bottom: 16px;
+  }
+  .commit-box .commit-label {
+    font-size: 12px;
+    text-transform: uppercase;
+    letter-spacing: 0.8px;
+    opacity: 0.75;
+    margin-bottom: 6px;
+  }
+  .commit-box .commit-q {
+    font-size: 15px;
+    font-weight: 700;
+    margin-bottom: 10px;
+    line-height: 1.4;
+  }
+  .commit-box textarea {
+    background: rgba(255,255,255,0.15);
+    border: 1.5px solid rgba(255,255,255,0.35);
+    color: white;
+    min-height: 72px;
+  }
+  .commit-box textarea::placeholder { color: rgba(255,255,255,0.5); }
+  .commit-box textarea:focus { background: rgba(255,255,255,0.22); border-color: rgba(255,255,255,0.7); }
+
+  /* ── Submit button ── */
+  .submit-wrap { padding: 8px 16px 0; max-width: 520px; margin: 0 auto; }
+  .btn-submit {
+    width: 100%;
+    background: var(--brand);
+    color: white;
+    border: none;
+    border-radius: var(--radius);
+    padding: 16px;
+    font-size: 16px;
+    font-weight: 700;
+    cursor: pointer;
+    letter-spacing: 0.3px;
+    transition: opacity 0.2s, transform 0.15s;
+    -webkit-appearance: none;
+  }
+  .btn-submit:active { transform: scale(0.98); opacity: 0.9; }
+  .btn-submit:disabled { opacity: 0.45; cursor: not-allowed; }
+
+  /* ── Success screen ── */
+  .success-screen {
+    display: none;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    min-height: 100vh;
+    padding: 40px 24px;
+    text-align: center;
+    background: var(--light);
+  }
+  .success-icon {
+    width: 72px; height: 72px;
+    border-radius: 50%;
+    background: var(--brand);
+    display: flex; align-items: center; justify-content: center;
+    margin-bottom: 20px;
+  }
+  .success-icon svg { width: 36px; height: 36px; }
+  .success-title { font-size: 24px; font-weight: 800; color: var(--navy); margin-bottom: 10px; }
+  .success-msg { font-size: 15px; color: var(--grey); line-height: 1.6; max-width: 300px; }
+
+  /* ── Error state ── */
+  .field-error { font-size: 12px; color: #C0392B; margin-top: -10px; margin-bottom: 10px; display: none; }
+  .input-error { border-color: #C0392B !important; }
+
+  /* ── Validation notice ── */
+  .validation-notice {
+    background: #FEF9E7;
+    border: 1.5px solid #F39C12;
+    border-radius: 8px;
+    padding: 12px 14px;
+    font-size: 13px;
+    color: #784212;
+    margin-bottom: 16px;
+    display: none;
+  }
+  .spacer { height: 12px; }
+</style>
+</head>
+<body>
+
+<!-- Header -->
+<div class="header">
+  <div class="header-eyebrow">NerdzFactory EIF Programme</div>
+  <div class="header-title">Nail Technology</div>
+  <div class="header-sub">Technical Skills — Learner Worksheet</div>
+  <div class="progress-wrap">
+    <div class="progress-bar" id="progressBar"></div>
+  </div>
+  <div class="progress-label" id="progressLabel">Section 1 of 5</div>
+</div>
+
+<!-- Main form -->
+<div id="mainForm">
+  <div class="content">
+
+    <!-- Learner details -->
+    <div class="info-card">
+      <label for="learnerName">Your Full Name</label>
+      <input type="text" id="learnerName" placeholder="Enter your full name" autocomplete="name"/>
+      <label for="masterName">Your Master's Name</label>
+      <input type="text" id="masterName" placeholder="Enter your master's name" autocomplete="off"/>
+    </div>
+
+    <!-- Section 1: Definition -->
+    <div class="section">
+      <div class="section-header">
+        <div class="section-num">1</div>
+        <div class="section-title">What is Nail Technology?</div>
+      </div>
+      <div class="def-box">
+        <div class="def-label">Definition</div>
+        Nail Technology is the skill of caring for, decorating, and treating fingernails and toenails using professional tools, products, and hygiene practices.
+      </div>
+      <div class="q-label">In your own words, explain what Nail Technology means. Why does it matter to do it well?</div>
+      <div class="q-hint">Write at least 2 sentences.</div>
+      <textarea id="q1" placeholder="Type your answer here…" rows="4"></textarea>
+    </div>
+
+    <!-- Section 2: Skills recap -->
+    <div class="section">
+      <div class="section-header">
+        <div class="section-num">2</div>
+        <div class="section-title">The 4 Technical Skills</div>
+      </div>
+      <div class="skill-card">
+      <div class="skill-num">1</div>
+      <div class="skill-body">
+        <div class="skill-name">Sanitation & Hygiene</div>
+        <div class="skill-desc">Clean and disinfect all your tools before and after every client. Never use the same file on two clients. This prevents infection and builds trust.</div>
+      </div>
+    </div>
+<div class="skill-card">
+      <div class="skill-num">2</div>
+      <div class="skill-body">
+        <div class="skill-name">Nail Preparation</div>
+        <div class="skill-desc">Push back the cuticles gently, file the nail to the right shape, and buff the surface smooth before applying any product.</div>
+      </div>
+    </div>
+<div class="skill-card">
+      <div class="skill-num">3</div>
+      <div class="skill-body">
+        <div class="skill-name">Gel & Acrylic Application</div>
+        <div class="skill-desc">Apply the base coat first. Work in thin layers and cure properly under the UV lamp. Thick layers lift and break.</div>
+      </div>
+    </div>
+<div class="skill-card">
+      <div class="skill-num">4</div>
+      <div class="skill-body">
+        <div class="skill-name">Nail Art & Design</div>
+        <div class="skill-desc">Use a thin nail art brush and steady your hand on the table. Practice simple designs first — dots, lines, and flowers — before trying complex patterns.</div>
+      </div>
+    </div>
+      <div class="spacer"></div>
+      <div class="q-label" style="margin-top:16px">Which of these skills do you already practise in your workshop? Select all that apply.</div>
+      <div style="margin-bottom:16px"><label class="skill-check">
+      <input type="checkbox" name="skills" value="0" />
+      <span class="checkmark"></span>
+      <span class="skill-check-label">Sanitation & Hygiene</span>
+    </label>
+<label class="skill-check">
+      <input type="checkbox" name="skills" value="1" />
+      <span class="checkmark"></span>
+      <span class="skill-check-label">Nail Preparation</span>
+    </label>
+<label class="skill-check">
+      <input type="checkbox" name="skills" value="2" />
+      <span class="checkmark"></span>
+      <span class="skill-check-label">Gel & Acrylic Application</span>
+    </label>
+<label class="skill-check">
+      <input type="checkbox" name="skills" value="3" />
+      <span class="checkmark"></span>
+      <span class="skill-check-label">Nail Art & Design</span>
+    </label></div>
+      <div class="q-label">Choose ONE skill you selected above and describe exactly how you do it in your workshop.</div>
+      <textarea id="q2b" placeholder="Name the skill and describe how you do it…" rows="4"></textarea>
+    </div>
+
+    <!-- Section 3: Apply your knowledge -->
+    <div class="section">
+      <div class="section-header">
+        <div class="section-num">3</div>
+        <div class="section-title">Apply Your Knowledge</div>
+      </div>
+      <div class="q-label">Read this situation carefully, then answer the question below.</div>
+      <div class="def-box" style="margin-bottom:14px; font-style:italic;">A client's gel nails lift and peel after just 4 days. She is upset and wants a refund. Based on what you learned today, what most likely caused this problem?</div>
+      <div class="q-label">What is your answer? Name the skill that failed and explain what the correct approach should be.</div>
+      <textarea id="q3" placeholder="Name the skill and explain the correct approach…" rows="5"></textarea>
+    </div>
+
+    <!-- Section 4: Safety -->
+    <div class="section">
+      <div class="section-header">
+        <div class="section-num">4</div>
+        <div class="section-title">Safety & Hygiene</div>
+      </div>
+      <div class="q-label">A client has a small cut on one of her fingers. What should you do before starting her nail service?</div>
+      <textarea id="q4" placeholder="Type your answer here…" rows="4"></textarea>
+      <div class="q-label">How confident are you with the safety practices in your trade right now?</div>
+      <div class="radio-group">
+        <label class="radio-opt"><input type="radio" name="safety_conf" value="1"/><div class="radio-dot"></div><span>Not confident at all — I need to learn more</span></label>
+        <label class="radio-opt"><input type="radio" name="safety_conf" value="2"/><div class="radio-dot"></div><span>Somewhat confident — I know the basics</span></label>
+        <label class="radio-opt"><input type="radio" name="safety_conf" value="3"/><div class="radio-dot"></div><span>Confident — I practise safety consistently</span></label>
+        <label class="radio-opt"><input type="radio" name="safety_conf" value="4"/><div class="radio-dot"></div><span>Very confident — I can teach others</span></label>
+      </div>
+    </div>
+
+    <!-- Section 5: Commitment -->
+    <div class="section">
+      <div class="section-header">
+        <div class="section-num">5</div>
+        <div class="section-title">My Commitment</div>
+      </div>
+      <div class="commit-box">
+        <div class="commit-label">This week, I will practise…</div>
+        <div class="commit-q">Name ONE specific skill you will work on this week.</div>
+        <textarea id="q5a" placeholder="e.g. I will practise measuring every customer before cutting…" rows="3"></textarea>
+      </div>
+      <div class="q-label">How will you know you have improved? What will be different in your work?</div>
+      <textarea id="q5b" placeholder="Describe what improvement looks like for you…" rows="3"></textarea>
+      <div class="q-label">Which skill from another trade area surprised or impressed you today?</div>
+      <textarea id="q5c" placeholder="Name the trade and skill, and explain why it stood out…" rows="3"></textarea>
+    </div>
+
+    <!-- Validation notice -->
+    <div class="validation-notice" id="validationNotice">
+      Please fill in all required fields before submitting.
+    </div>
+
+  </div>
+
+  <!-- Submit -->
+  <div class="submit-wrap">
+    <button class="btn-submit" id="submitBtn" onclick="handleSubmit()">
+      Submit &amp; Complete Module
+    </button>
+    <div style="height:20px"></div>
+  </div>
+</div>
+
+<!-- Success screen -->
+<div class="success-screen" id="successScreen">
+  <div class="success-icon">
+    <svg viewBox="0 0 24 24" fill="none" stroke="white" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round">
+      <polyline points="20 6 9 17 4 12"></polyline>
+    </svg>
+  </div>
+  <div class="success-title">Module Complete!</div>
+  <div class="success-msg">Well done. Your answers have been recorded. Keep practising what you learned today — your skills are your future.</div>
+</div>
+
+<script>
+  // ── Progress tracking ─────────────────────────────────────────────
+  const sections = [
+    { id: 'learnerName', label: 'Learner Details' },
+    { id: 'q1',         label: 'Section 1 — Definition' },
+    { id: 'q2b',        label: 'Section 2 — Skills' },
+    { id: 'q3',         label: 'Section 3 — Apply Knowledge' },
+    { id: 'q4',         label: 'Section 4 — Safety' },
+    { id: 'q5a',        label: 'Section 5 — Commitment' },
+  ];
+
+  function updateProgress() {
+    let filled = 0;
+    if (document.getElementById('learnerName').value.trim()) filled++;
+    if (document.getElementById('q1').value.trim()) filled++;
+    if (document.getElementById('q2b').value.trim()) filled++;
+    if (document.getElementById('q3').value.trim()) filled++;
+    if (document.getElementById('q4').value.trim()) filled++;
+    if (document.getElementById('q5a').value.trim()) filled++;
+
+    const pct = Math.round((filled / sections.length) * 100);
+    document.getElementById('progressBar').style.width = pct + '%';
+    const current = Math.min(filled + 1, sections.length);
+    document.getElementById('progressLabel').textContent =
+      filled < sections.length
+        ? 'Section ' + current + ' of ' + sections.length
+        : 'All sections complete — ready to submit';
+  }
+
+  // Attach progress listeners
+  ['learnerName', 'masterName', 'q1', 'q2b', 'q3', 'q4', 'q5a', 'q5b', 'q5c'].forEach(id => {
+    const el = document.getElementById(id);
+    if (el) el.addEventListener('input', updateProgress);
+  });
+  document.querySelectorAll('input[type="checkbox"], input[type="radio"]').forEach(el => {
+    el.addEventListener('change', updateProgress);
+  });
+
+  // ── Collect all responses ─────────────────────────────────────────
+  function collectResponses() {
+    const checkedSkills = Array.from(
+      document.querySelectorAll('input[name="skills"]:checked')
+    ).map(el => el.value);
+
+    const safetyConf = document.querySelector('input[name="safety_conf"]:checked');
+
+    return {
+      trade_id: "03",
+      trade_name: "Nail Technology",
+      learner_name: document.getElementById('learnerName').value.trim(),
+      master_name:  document.getElementById('masterName').value.trim(),
+      timestamp:    new Date().toISOString(),
+      answers: {
+        q1_definition:      document.getElementById('q1').value.trim(),
+        q2a_skills_checked: checkedSkills,
+        q2b_skill_practice: document.getElementById('q2b').value.trim(),
+        q3_scenario:        document.getElementById('q3').value.trim(),
+        q4_safety:          document.getElementById('q4').value.trim(),
+        q4_confidence:      safetyConf ? safetyConf.value : '',
+        q5a_commitment:     document.getElementById('q5a').value.trim(),
+        q5b_improvement:    document.getElementById('q5b').value.trim(),
+        q5c_cross_trade:    document.getElementById('q5c').value.trim(),
+      }
+    };
+  }
+
+  // ── Validate required fields ──────────────────────────────────────
+  function validate() {
+    const required = ['learnerName', 'q1', 'q2b', 'q3', 'q4', 'q5a'];
+    let valid = true;
+    required.forEach(id => {
+      const el = document.getElementById(id);
+      if (!el.value.trim()) {
+        el.classList.add('input-error');
+        valid = false;
+      } else {
+        el.classList.remove('input-error');
+      }
+    });
+    return valid;
+  }
+
+  // ── Submit handler ────────────────────────────────────────────────
+  function handleSubmit() {
+    if (!validate()) {
+      const notice = document.getElementById('validationNotice');
+      notice.style.display = 'block';
+      notice.scrollIntoView({ behavior: 'smooth', block: 'center' });
+      return;
+    }
+
+    const responses = collectResponses();
+
+    // ── postMessage to LMS parent window ─────────────────────────────
+    // Signal 1: completion status
+    window.parent.postMessage({
+      type: 'MODULE_COMPLETE',
+      status: 'completed',
+      score: 100,
+      trade_id: responses.trade_id,
+      learner_name: responses.learner_name,
+    }, '*');
+
+    // Signal 2: full response data (for facilitator review)
+    window.parent.postMessage({
+      type: 'MODULE_RESPONSE_DATA',
+      payload: responses,
+    }, '*');
+
+    // ── Show success screen ───────────────────────────────────────────
+    document.getElementById('mainForm').style.display = 'none';
+    const success = document.getElementById('successScreen');
+    success.style.display = 'flex';
+    success.scrollIntoView({ behavior: 'smooth' });
+  }
+
+  // Initial progress update
+  updateProgress();
+</script>
+</body>
+</html>
