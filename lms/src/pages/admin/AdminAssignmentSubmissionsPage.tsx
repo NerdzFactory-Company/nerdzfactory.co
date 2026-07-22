@@ -62,7 +62,13 @@ export function AdminAssignmentSubmissionsPage() {
     setLockingId(submission.id)
     try {
       const updated = await apiStaffSetSubmissionLocked(submission.id, !submission.locked)
-      setSubmissions((prev) => prev.map((s) => (s.id === updated.id ? { ...s, ...updated } : s)))
+      setSubmissions((prev) =>
+        prev.map((s) =>
+          s.id === updated.id
+            ? { ...s, locked: updated.locked, lockedAt: updated.lockedAt }
+            : s,
+        ),
+      )
     } catch (e) {
       setLockError(e instanceof Error ? e.message : 'Could not update lock status.')
     } finally {
